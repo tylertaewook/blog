@@ -28,17 +28,6 @@
 
   
       ,"page1": {
-          "title": "About Me",
-          "content": "This website is powered by fastpages 1. . a blogging platform that natively supports Jupyter notebooks in addition to other formats. &#8617; . |",
-          "url": "https://tylertaewook.github.io/blog/about/",
-          "relUrl": "/about/",
-          "date": ""
-      }
-      
-  
-
-  
-      ,"page2": {
           "title": "",
           "content": ". Welcome to my SANDBOX! . This is a place where I post about experimental projects, interesting papers I’ve read, and my machine learning journey in general. Simply put, it is a place where I play around with different ideas, hence the name ‘Sandbox’ . Posts .",
           "url": "https://tylertaewook.github.io/blog/",
@@ -68,7 +57,7 @@
   
 
   
-      ,"page10": {
+      ,"page9": {
           "title": "",
           "content": "Sitemap: {{ “sitemap.xml” | absolute_url }} | .",
           "url": "https://tylertaewook.github.io/blog/robots.txt",
