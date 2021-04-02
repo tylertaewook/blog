@@ -230,26 +230,42 @@ For the motors, the HS-785HB servo with a built-in gearbox on the top control th
 
 <p>The real beauty of this project was the algorithm development. The following writings will summarize my paper: <strong><a href="https://tylertaewook.github.io/static/media/orbitron-paper.506633ba.pdf">“Intuitive Control Algorithm Development of 4WIS/4WID Using a SpaceMouse”</a></strong></p>
 
-<p>You can browse my poster and code through the repo below.</p>
+<p>4WIS/D system of the Orbitron enables more versatile motion for vehicles that needs to navigate in tight spaces but controlling two parameters, direction and speed, for each wheel results in eight parameters in need of simultaneous control.</p>
+
+<p>So our goal was simple: <strong>to develop an algorithm that achieves an Intuitive control that abstracts away the complexity, allowing for a full realization of the vehicle’s capabilities.</strong></p>
 
 <h2 id="algorithm-setup">
 <a class="anchor" href="#algorithm-setup" aria-hidden="true"><span class="octicon octicon-link"></span></a>Algorithm Setup</h2>
 
-<p>A 3Dconnexion’s SpaceMouse(also called SpaceNavigator) involves a patented 6-Degrees-of-Freedom (6DoF) sensor that is specifically designed to manipulate digital content and camera positions in the industry-leading CAD applications.</p>
+<p>We chose 3Dconnexion’s SpaceMouse (SpaceNavigator) as a controller as it was designed for intuitive navigation on 3D space in CAD.</p>
 
-<p>For this purpose, we want to manipulate its capabilities to convert the input from the user into a set of six numbers that range from −1 to +1, which will be used as raw data for our algorithm.</p>
+<p>Connecting the SpaceMouse with Mathematica gave us six numbers ranging from -1 to +1 based on the mouse’s position, which became the raw input data for our algorithm.</p>
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/0l6u06nnhfkvpgpo4vdw.png" alt="Algorithm Setup"></p>
 
-<p>The algorithm’s main job is to translate the six variables from the SpaceMouse to eight variables, each of which represents either angle or speed of a wheel. The algorithm is responsible for calculating variable transformations and records the sets of timestamped variables in a CSV file. We then use a serial regulator, a C# application I’ve developed, to deliver the set of variables at a proper time without overfeeding data to the prototype.</p>
+<p>The algorithm’s main job is to translate these six variables from the SpaceMouse to eight variables, each of which represents either angle or speed of a wheel. The algorithm is responsible for calculating variable transformations and records the sets of timestamped variables in a CSV file. We then use a serial regulator, a C# application I’ve developed, to deliver the set of variables at a proper time without overfeeding data to the prototype.</p>
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/w6qcjjywwm7hfowx90ad.png" alt="alg_GUI"></p>
 
-<p>When Graphics.nb is executed, the interface on the right will be continuously updated based on the user’s input.
-All the arrows shown in this interface is color coded differently to distinguish each from others easier, and four labels are shown next to each wheel which displays the updated angle and speed value. Additionally, there are always five different green circles that each represent the radius of curvature of
-each wheel and the center of the vehicle. This can be applied to vehicles with any number of wheels, but just with more curvature circles.</p>
+<p>When Mathematica Notebook is executed, the interface on the right is continuously updated based on the user’s input. All the arrows shown in this interface is color coded differently to distinguish each from others easier, and four labels are shown next to each wheel to display updated angle and speed values.</p>
 
-<p>For the arrows, the blue arrow in the center of the diagram represents the motion of the center of the vehicle. Then there are three arrows in each wheel. The gray arrow is always fixed along the vehicle body’s angle and acts as a base for other two arrows. The pink arrows are the tangent line of the green circle, and the angle between the gray arrow and the pink arrow is used to determine each wheel’s angle. Lastly, the red arrow represents the actual trajectory of the vehicle. As the user controls the vehicle, the length of the red arrow will always represent the relative velocity of each wheel by differing its length.</p>
+<ul>
+  <li>
+    <p><strong>Green Concentric Circles</strong>: each represent the radius of curvature of each wheel and the center of the vehicle. This can be applied to vehicles with any number of wheels, but just with more curvature circles.</p>
+  </li>
+  <li>
+    <p><strong>Blue Arrow</strong>: motion of the vehicle’s center</p>
+  </li>
+  <li>
+    <p><strong>Gray Arrow</strong>: acts as base for red/pink arrows; always fixed along the vehicle body’s angle</p>
+  </li>
+  <li>
+    <p><strong>Pink Arrow</strong>: tangent line of the green circle; angle between the gray arrow and pink arrow is used to determine each wheel’s angle</p>
+  </li>
+  <li>
+    <p><strong>Red Arrow</strong>: actual trajectory of the vehicle; As user controls the mouse, arrows’ length will always represent the relative velocity of each wheel.</p>
+  </li>
+</ul>
 
 <h2 id="implementing-different-steering-modes">
 <a class="anchor" href="#implementing-different-steering-modes" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implementing Different Steering Modes</h2>
@@ -260,15 +276,19 @@ each wheel and the center of the vehicle. This can be applied to vehicles with a
 
 <h3 id="crab-steering">
 <a class="anchor" href="#crab-steering" aria-hidden="true"><span class="octicon octicon-link"></span></a>Crab Steering</h3>
-<p>Crab steering is a special type of active four-wheel steering that operates by steering all wheels in the same direction and at the same angle.
-<img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/jkwo40w9ubculwinlogu.png" alt="Crab Steering">
-The algorithm uses the Crab steering mode whenever the user slides the SpaceMouse on the plane. In this specific example, when the mouse is facing upper right corner, all four wheels are angled in the direcHon the mouse is poinHng at. All four wheels have the same speed which is computed as the tangenHal velocity of a circle with a very large radius.</p>
+<p>Crab steering is a special type of active four-wheel steering that operates by steering all wheels in the same direction and at the same angle.</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/jkwo40w9ubculwinlogu.png" alt="Crab Steering"></p>
+
+<p>The algorithm uses the Crab steering mode whenever the user slides the SpaceMouse on the plane. In this specific example, when the mouse is facing upper right corner, all four wheels are angled in the direction the mouse is pointing at. All four wheels have the same speed which is computed as the tangential velocity of a circle with a very large radius.</p>
 
 <h3 id="active-front-and-rear-steering">
 <a class="anchor" href="#active-front-and-rear-steering" aria-hidden="true"><span class="octicon octicon-link"></span></a>Active Front and Rear Steering</h3>
-<p>AFRS mechanism involves front and rear wheels turning independently for smaller turning radius and better cornering stability. In this steering mode, rear wheels change the way a vehicle turns based on driving parameters. Each wheel’s velocity is computed as the tangential velocity of a circle.
-<img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hs1j8508h9y4idafog6g.png" alt="AFRS1">
-The twisting motion of the SpaceMouse is responsible for changing the radius of the vehicle’s curvature. The core of the algorithm is that it considers every motion as a circular motion and computes each wheel’s velocity and angle tangent to that circle. The radius of curvature (𝒓) is calculated by the equation shown above, and the angle value (θ) is controlled with the twisting motion of the mouse.</p>
+<p>AFRS mechanism involves front and rear wheels turning independently for smaller turning radius and better cornering stability. In this steering mode, rear wheels change the way a vehicle turns based on driving parameters. Each wheel’s velocity is computed as the tangential velocity of a circle.</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hs1j8508h9y4idafog6g.png" alt="AFRS1"></p>
+
+<p>The twisting motion of the SpaceMouse is responsible for changing the radius of the vehicle’s curvature. The core of the algorithm is that it considers every motion as a circular motion and computes each wheel’s velocity and angle tangent to that circle. The radius of curvature (𝒓) is calculated by the equation shown above, and the angle value (θ) is controlled with the twisting motion of the mouse.</p>
 
 <p>When the mouse is twisted clockwise, θ is increased, resulting in a larger curvature radius. When the mouse is twisted counterclockwise, θ is decreased, resulting in a smaller curvature radius. Negative θ will make the circle move in the other side of the vehicle.</p>
 
@@ -284,12 +304,18 @@ The twisting motion of the SpaceMouse is responsible for changing the radius of 
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/52gqguh4x7hi1du7vf79.png" alt="Spinning"></p>
 
-<p>When one of the two buttons on the side of the SpaceMouse is pressed, the vehicle rotates in the respective direction. As shown in the screenshots above, the vehicle turns in a clockwise direction when the right button is pressed, and the vehicle rotates in a counterclockwise direction when leX button is pressed.</p>
+<p>When one of the two buttons on the side of the SpaceMouse is pressed, the vehicle rotates in the respective direction. As shown in the screenshots above, the vehicle turns in a clockwise direction when the right button is pressed, and the vehicle rotates in a counterclockwise direction when left button is pressed.</p>
 
 <h2 id="conclusion">
 <a class="anchor" href="#conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion</h2>
 
-<p>I developed an algorithm, implemented in Mathemathica, that allows intuitive control of a 4WIS/4WID vehicle. With the assumption that all motions are circular motions, the algorithm abstracts away the complexity and allows for a full realization of the vehicle’s capabilities without any special training on the operator’s part. 4WIS/4WID system is a promising steering mechanism that can be applied in various vehicles/robots that require maneuverability in narrow spaces and more efficient control.</p>
+<p>In the course of six months, I built aprototype vehicle, which we named Orbitron, and experimentally confirmed that our algorithm successfully processes the driver’s intention conveyed by a SpaceMouse and controls all four wheels in a cooperative manner so that they don’t conflict with each other to accomplish the intended motion.</p>
+
+<p>I have worked on several for-fun projects in Arduino before, but Project Orbitron was by far the largest and most complex one I have ever done. Building the prototype alone took the entire summer vacation and over $1,000 in budget, and I spent another three months developing the algorithm while teaching myself Mathematica and constantly tweaking Orbitron’s settings.</p>
+
+<p>Upon finishing the project, I participated in a <a href="https://kentnews.org/2382/features/an-outstanding-performance-at-the-71st-annual-connecticut-science-and-engineering-fair/">local science fair</a> and presented my work to the <a href="https://kentnews.org/2525/features/a-guild-presentation-by-tyler-kim-20/">Kent Guild</a>, an academic society at my school.</p>
+
+<p>This has become the core experience/project of my journey and even ended up being the topic for my college essay. The prototype is currently displayed on the first floor of Kent School’s Pre-Engineering Center, and my algorithm is going through a patent process in Korea. <em>(Application Number: KR 10-2019-0087022)</em></p>
 
   </div><!-- from https://github.com/utterance/utterances -->
 <script src="https://utteranc.es/client.js"
