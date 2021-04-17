@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>RLpapers | Tyler’s SandBox</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="RLpapers" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="List of papers, books, and codes I studied for my Reinforcement Learning Journey" />
+<meta property="og:description" content="List of papers, books, and codes I studied for my Reinforcement Learning Journey" />
+<link rel="canonical" href="https://tylertaewook.github.io/blog/papers/2021/04/17/RLPapers.html" />
+<meta property="og:url" content="https://tylertaewook.github.io/blog/papers/2021/04/17/RLPapers.html" />
+<meta property="og:site_name" content="Tyler’s SandBox" />
+<meta property="og:image" content="https://tylertaewook.github.io/blog/images/RLpapers.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-04-17T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"https://tylertaewook.github.io/blog/papers/2021/04/17/RLPapers.html","@type":"BlogPosting","headline":"RLpapers","dateModified":"2021-04-17T00:00:00-05:00","datePublished":"2021-04-17T00:00:00-05:00","image":"https://tylertaewook.github.io/blog/images/RLpapers.jpg","mainEntityOfPage":{"@type":"WebPage","@id":"https://tylertaewook.github.io/blog/papers/2021/04/17/RLPapers.html"},"description":"List of papers, books, and codes I studied for my Reinforcement Learning Journey","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://tylertaewook.github.io/blog/feed.xml" title="Tyler's SandBox" /><!-- the google_analytics_id gets auto inserted from the config file -->
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QTSM840YE7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-QTSM840YE7');
+</script>
+
+
+<link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+<meta name="google-site-verification" content="1YTy_xCjpIfIYPZZ0wpiR4giLjUiG8q0lEYw8vUWHmQ" />
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Tyler&#39;s SandBox</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">RLpapers</h1><p class="page-description">List of papers, books, and codes I studied for my Reinforcement Learning Journey</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-04-17T00:00:00-05:00" itemprop="datePublished">
+        Apr 17, 2021
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      2 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blog/categories/#papers">papers</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#rlpapers">RLpapers</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#first-and-foremost-the-basics">First and foremost, the basics:</a></li>
+<li class="toc-entry toc-h3"><a href="#value-based">Value Based</a></li>
+<li class="toc-entry toc-h3"><a href="#dpg">DPG</a></li>
+<li class="toc-entry toc-h3"><a href="#policy-gradient">Policy Gradient</a></li>
+<li class="toc-entry toc-h3"><a href="#marl">MARL</a></li>
+<li class="toc-entry toc-h3"><a href="#a2ca3c">A2C/A3C</a></li>
+<li class="toc-entry toc-h3"><a href="#sac">SAC</a></li>
+<li class="toc-entry toc-h3"><a href="#survey">Survey</a></li>
+</ul>
+</li>
+</ul><h1 id="rlpapers">
+<a class="anchor" href="#rlpapers" aria-hidden="true"><span class="octicon octicon-link"></span></a>RLpapers</h1>
+
+<p>This repo lists all the books, papers, and codes I used for my own RL journey.
+I will constantly update my progress with my own annotated papers [paper_annot] and code implemented [code] as I continue.
+As I’m studying, I will also work on a <a href="https://docs.google.com/spreadsheets/d/1TtQPn9n78hDxVIOh44XMBY4sJA3ST4iV2b_Qbw4r5cM/edit#gid=0">RL Jargons List</a> for an organized place to list unfamiliar terms.</p>
+
+<p>The papers that are numbered below are part of our curriculum at <a href="https://blog.diyaml.com/">DIYA</a>’s MultiAgentRL team, where our goal is to read two papers and review them together every week. The other papers are composed to supplement my understandings whenever I have extra time.</p>
+
+<h3 id="first-and-foremost-the-basics">
+<a class="anchor" href="#first-and-foremost-the-basics" aria-hidden="true"><span class="octicon octicon-link"></span></a>First and foremost, the basics:</h3>
+<ul>
+  <li>Richard Sutton’s <a href="http://incompleteideas.net/book/the-book.html">Reinforcement Learning: An Introduction</a> 🚧 <em>2021.04.13-</em>
+</li>
+  <li>David Silver’s <a href="https://youtube.com/playlist?list=PLqYmG7hTraZBiG_XpjnPrSNw-1XQaM_gB">RL Course</a> 🚧 <em>2021.04.13-</em>
+</li>
+</ul>
+
+<h3 id="value-based">
+<a class="anchor" href="#value-based" aria-hidden="true"><span class="octicon octicon-link"></span></a>Value Based</h3>
+<ol>
+  <li>Playing Atari with Deep Reinforcement Learning, 2013. Algorithm: <code class="language-plaintext highlighter-rouge">DQN</code> <strong><a href="https://github.com/tylertaewook/RLpapers/blob/main/DQN_annot.pdf">[paper_annot]</a> <a href="https://github.com/tylertaewook/RLpapers/blob/main/DQN.ipynb">[code]</a></strong> ✅ <em>2021.04.15</em>
+    <ul>
+      <li>Human-level control through deep reinforcement learning, 2015. Algorithm: <code class="language-plaintext highlighter-rouge">DQN</code> <strong><a href="https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf">[paper]</a></strong>
+</li>
+    </ul>
+  </li>
+  <li>Multiagent Cooperation and Competition with Deep Reinforcement Learning <strong><a href="https://arxiv.org/pdf/1511.08779.pdf">[paper]</a></strong> ✅ <em>2021.04.15</em>
+</li>
+  <li>Deep Recurrent Q-Learning for Partially Observable MDPs, Hausknecht and Stone, 2015. Algorithm: <code class="language-plaintext highlighter-rouge">Deep Recurrent Q-Learning(DRQN)</code> <strong><a href="https://arxiv.org/abs/1507.06527">[paper]</a></strong> 🚧
+    <ul>
+      <li>Prioritized Experience Replay, Schaul et al, 2015. Algorithm: <code class="language-plaintext highlighter-rouge">Prioritized Experience Replay (PER)</code> <strong><a href="https://arxiv.org/abs/1511.05952">[paper]</a></strong>
+</li>
+      <li>Dueling <strong><a href="https://arxiv.org/pdf/1511.06581.pdf">[paper]</a></strong>
+</li>
+      <li>Distributional <strong><a href="https://arxiv.org/pdf/1707.06887.pdf">[paper]</a></strong>
+</li>
+      <li>Rainbow <strong><a href="https://arxiv.org/abs/1710.02298">[paper]</a></strong>
+</li>
+      <li>Quantile Regression <strong><a href="https://arxiv.org/abs/1710.10044">[paper]</a></strong>
+</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="dpg">
+<a class="anchor" href="#dpg" aria-hidden="true"><span class="octicon octicon-link"></span></a>DPG</h3>
+<ul>
+  <li>Deterministic Policy Gradient Algorithms <code class="language-plaintext highlighter-rouge">DPG</code> <strong><a href="http://proceedings.mlr.press/v32/silver14.pdf">[paper]</a></strong> 🚧
+    <ol>
+      <li>Continuous Control With Deep Reinforcement Learning, Lillicrap et al, 2015. Algorithm: <code class="language-plaintext highlighter-rouge">DDPG</code> <strong><a href="https://arxiv.org/abs/1509.02971">[paper]</a></strong> 🚧</li>
+      <li>Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments, Lowe et al. 2017. Algorithm: <code class="language-plaintext highlighter-rouge">MADDPG</code> <strong><a href="https://arxiv.org/abs/1706.02275">[paper]</a></strong>
+</li>
+    </ol>
+  </li>
+  <li>Addressing Function Approximation Error in Actor-Critic Methods <strong><a href="https://arxiv.org/pdf/1802.09477.pdf">[paper]</a></strong>
+</li>
+</ul>
+
+<h3 id="policy-gradient">
+<a class="anchor" href="#policy-gradient" aria-hidden="true"><span class="octicon octicon-link"></span></a>Policy Gradient</h3>
+<ol>
+  <li>Trust Region Policy Optimization, Schulman et al, 2015. Algorithm: <code class="language-plaintext highlighter-rouge">TRPO</code>
+</li>
+  <li>High-Dimensional Continuous Control Using Generalized Advantage Estimation, Schulman et al, 2015. Algorithm: <code class="language-plaintext highlighter-rouge">GAE</code>
+</li>
+  <li>Proximal Policy Optimization Algorithms, Schulman et al, 2017. Algorithm: <code class="language-plaintext highlighter-rouge">PPO-Clip, PPO-Penalty</code>
+</li>
+  <li>Emergence complexity via Muti-agent competition, Bansal et al, 2017.</li>
+  <li>Adversarial Policies: Attacking Deep Reinforcement Learning https://arxiv.org/pdf/1905.10615.pdf</li>
+</ol>
+
+<h3 id="marl">
+<a class="anchor" href="#marl" aria-hidden="true"><span class="octicon octicon-link"></span></a>MARL</h3>
+<ol>
+  <li>Counterfactual Multi-Agent Policy Gradient, Foerster et al. Algorithm: <code class="language-plaintext highlighter-rouge">COMA</code>
+</li>
+  <li>Monotonic Value Function Factorisation for Deep Multi-Agent Reinforcement Learning, Rashid et al. 2018. Algorithm: <code class="language-plaintext highlighter-rouge">QMIX</code>
+</li>
+  <li>Autocurricula and the Emergence of Innovation from Social Interaction: A Manifesto for Multi-Agent Intelligence Research</li>
+  <li>Deep Reinforcement Learning from Self-Play in Imperfect-Information Games NFSP (Neural Fictitious Self-Play)</li>
+  <li>Jaderberg et al. Human-level performance in 3D multiplayer games with population based reinforcement learning https://science.sciencemag.org/content/sci/364/6443/859.full.pdf</li>
+  <li>ASYMMETRIC SELF-PLAY FOR AUTOMATIC GOAL DISCOVERY IN ROBOTIC MANIPULATION Asymmetric self-play &amp; HRL</li>
+  <li>A Unified Game-Theoretic Approach to Multiagent Reinforcement Learning PSRO/DCH</li>
+</ol>
+
+<h3 id="a2ca3c">
+<a class="anchor" href="#a2ca3c" aria-hidden="true"><span class="octicon octicon-link"></span></a>A2C/A3C</h3>
+<ul>
+  <li>Asynchronous Methods for Deep Reinforcement Learning <strong><a href="https://arxiv.org/pdf/1602.01783.pdf">[paper]</a> <a href="">[code]</a></strong>
+</li>
+</ul>
+
+<h3 id="sac">
+<a class="anchor" href="#sac" aria-hidden="true"><span class="octicon octicon-link"></span></a>SAC</h3>
+<ul>
+  <li>Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor, 2018 <strong><a href="https://arxiv.org/abs/1801.01290">[paper]</a></strong>
+</li>
+  <li>Soft Actor-Critic Algorithms and Applications, 2019 <strong><a href="https://arxiv.org/abs/1801.01290">[paper]</a></strong>
+</li>
+</ul>
+
+<h3 id="survey">
+<a class="anchor" href="#survey" aria-hidden="true"><span class="octicon octicon-link"></span></a>Survey</h3>
+<ul>
+  <li>Multi-Agent Reinforcement Learning: A Selective Overview of Theories and Algorithms <strong><a href="https://arxiv.org/pdf/1911.10635.pdf">[paper]</a></strong>
+</li>
+  <li>A Survey and Critique of Multiagent Deep Reinforcement Learning <strong><a href="https://arxiv.org/pdf/1810.05587.pdf">[paper]</a></strong>
+</li>
+</ul>
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="tylertaewook/blog"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/blog/papers/2021/04/17/RLPapers.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>Blog</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/tylertaewook" title="tylertaewook"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/tylertaewook" title="tylertaewook"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
