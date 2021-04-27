@@ -8,16 +8,16 @@
 <meta name="generator" content="Jekyll v4.1.1" />
 <meta property="og:title" content="Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="How I approached the well-known PPO arxiv paper as a total beginner" />
-<meta property="og:description" content="How I approached the well-known PPO arxiv paper as a total beginner" />
+<meta name="description" content="How I approached the PPO arxiv paper as a complete beginner" />
+<meta property="og:description" content="How I approached the PPO arxiv paper as a complete beginner" />
 <link rel="canonical" href="https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html" />
 <meta property="og:url" content="https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html" />
 <meta property="og:site_name" content="Tyler’s SandBox" />
-<meta property="og:image" content="https://tylertaewook.github.io/blog/images/ppo.png" />
+<meta property="og:image" content="https://tylertaewook.github.io/blog/images/ppo.jpeg" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2021-04-27T00:00:00-05:00" />
 <script type="application/ld+json">
-{"url":"https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html","@type":"BlogPosting","headline":"Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)","dateModified":"2021-04-27T00:00:00-05:00","datePublished":"2021-04-27T00:00:00-05:00","image":"https://tylertaewook.github.io/blog/images/ppo.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html"},"description":"How I approached the well-known PPO arxiv paper as a total beginner","@context":"https://schema.org"}</script>
+{"url":"https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html","@type":"BlogPosting","headline":"Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)","dateModified":"2021-04-27T00:00:00-05:00","datePublished":"2021-04-27T00:00:00-05:00","image":"https://tylertaewook.github.io/blog/images/ppo.jpeg","mainEntityOfPage":{"@type":"WebPage","@id":"https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html"},"description":"How I approached the PPO arxiv paper as a complete beginner","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://tylertaewook.github.io/blog/feed.xml" title="Tyler's SandBox" /><!-- the google_analytics_id gets auto inserted from the config file -->
 
@@ -104,13 +104,13 @@ window.onload = wrap_img;
         <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)</h1><p class="page-description">How I approached the well-known PPO arxiv paper as a total beginner</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-04-27T00:00:00-05:00" itemprop="datePublished">
+    <h1 class="post-title p-name" itemprop="name headline">Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)</h1><p class="page-description">How I approached the PPO arxiv paper as a complete beginner</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-04-27T00:00:00-05:00" itemprop="datePublished">
         Apr 27, 2021
       </time>
        • <span class="read-time" title="Estimated read time">
     
     
-      2 min read
+      4 min read
     
 </span></p>
 
@@ -127,24 +127,61 @@ window.onload = wrap_img;
 
   <div class="post-content e-content" itemprop="articleBody">
     <ul class="section-nav">
-<li class="toc-entry toc-h1"><a href="#policy-optimization">Policy Optimization</a></li>
+<li class="toc-entry toc-h2"><a href="#review-the-simplified-code-implementation-by-seungeunrhominimalrl">Review the simplified code implementation by seungeunrho/minimalRL</a></li>
+<li class="toc-entry toc-h1"><a href="#motives">Motives</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#destructive-policy-updates">Destructive Policy Updates</a></li>
+</ul>
+</li>
 <li class="toc-entry toc-h1"><a href="#clipped-surrogate-objective">Clipped Surrogate Objective</a></li>
 <li class="toc-entry toc-h1"><a href="#multiple-epochs-for-policy-updating">Multiple Epochs for Policy Updating</a></li>
 <li class="toc-entry toc-h1"><a href="#simplified-code-review">Simplified Code Review</a></li>
-</ul><p>“INTRO”</p>
+</ul><p>Research in policy gradient methods has been prevalent in recent years, with reinforcement algorithms such as <code class="language-plaintext highlighter-rouge">TRPO</code>, <code class="language-plaintext highlighter-rouge">GAE</code>, and <code class="language-plaintext highlighter-rouge">A2C/A3C</code> showing state-of-the-art performance over traditional methods such as Q-learning. One of the core algorithms in this policy gradient/actor-critic field is <strong>Proximal Policy Optimization Algorithm</strong> implemented by OpenAI.</p>
 
 <p>In this post, I try to accomplish the following:</p>
 <ul>
   <li>Discuss the motives behind PPO by providing a brief overview of Policy Gradient Methods and Trust Region Methods(<code class="language-plaintext highlighter-rouge">TRPO</code>)</li>
   <li>Understand the two core contributions of <code class="language-plaintext highlighter-rouge">PPO</code>: <strong>Clipped Surrogate Objective</strong> and <strong>Multiple Epochs for Policy Updating</strong>
 </li>
-  <li>Review the simplified code implementation by <a href="https://github.com/seungeunrho/minimalRL">seungeunrho/minimalRL</a>
-</li>
+  <li>
+    <h2 id="review-the-simplified-code-implementation-by-seungeunrhominimalrl">
+<a class="anchor" href="#review-the-simplified-code-implementation-by-seungeunrhominimalrl" aria-hidden="true"><span class="octicon octicon-link"></span></a>Review the simplified code implementation by <a href="https://github.com/seungeunrho/minimalRL">seungeunrho/minimalRL</a>
+</h2>
+    <h1 id="motives">
+<a class="anchor" href="#motives" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Motives</strong>
+</h1>
+  </li>
 </ul>
 
-<h1 id="policy-optimization">
-<a class="anchor" href="#policy-optimization" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Policy Optimization</strong>
-</h1>
+<h2 id="destructive-policy-updates">
+<a class="anchor" href="#destructive-policy-updates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Destructive Policy Updates</h2>
+
+<p>The optimization objective, or the gradient law, of Policy Gradient methods is defined as following:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/njfaaykq0a4e6md4yr20.png" alt="policyloss"></p>
+
+<p>The policy <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> is our neural network that takes the state observation from an environment as an input and suggest actions to take as an output. The advantage A hat is an estimation, hence the hat over A, of the relative value of selected action in current state.</p>
+
+<hr>
+
+<p>policy gradient usually starts by defining the gradient laws by the expectation over the log of policy actions times the estimate of the advantage function.</p>
+
+<p>pi theta is our policy; the neural network that takes the observed states from the envirionment and suggests actions to take as an output, a basically tries to estimate what the relative value is of the selected action in the current state.</p>
+
+<p>Advantage function is computed by: Discounted reward - baseline estimate(value function)</p>
+
+<p>value function gives an estimate of the discounted sum of reward. Basically trying to guess what the final reward would be. During training, this neural net representing the value function will be frequently updated using the experience that our agent collects in an environment (basically a supervised learning problem). Because this value estimate is an output of a neural net, it’s gonna be a noisy estimate; there’s gonna be some variance because our network is not going to always predict the exact value of that state.</p>
+
+<p>how much better was the action I took based on the expectation of what would normally happen in the state I was in. was the action our agent took better than expected or worse.</p>
+
+<p>So multiplying these two gets the final optimization function.</p>
+<ul>
+  <li>If advantage was positive (actions the agent took in the sample trajectory resulted in better than avg return): increase  the probability of selecting them again in the future when we encounter in the same state. gradient is positive.</li>
+</ul>
+
+<p>reduce the likelihood of selected actions if negative advantage.</p>
+
+<p>If you simple keep running gradient descent in one batch of collected experience, you’ll update the parameters in your network so far outside of the range where this data was collected that for example the advantage function(noisy estimate of real advantage) is gonna be completely wrong -&gt; destroy policy if you keep running GD on single batch of collected experience</p>
 
 <h1 id="clipped-surrogate-objective">
 <a class="anchor" href="#clipped-surrogate-objective" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Clipped Surrogate Objective</strong>
