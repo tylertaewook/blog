@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017) | Tyler’s SandBox</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="How I approached the well-known PPO arxiv paper as a total beginner" />
+<meta property="og:description" content="How I approached the well-known PPO arxiv paper as a total beginner" />
+<link rel="canonical" href="https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html" />
+<meta property="og:url" content="https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html" />
+<meta property="og:site_name" content="Tyler’s SandBox" />
+<meta property="og:image" content="https://tylertaewook.github.io/blog/images/ppo.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-04-27T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html","@type":"BlogPosting","headline":"Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)","dateModified":"2021-04-27T00:00:00-05:00","datePublished":"2021-04-27T00:00:00-05:00","image":"https://tylertaewook.github.io/blog/images/ppo.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html"},"description":"How I approached the well-known PPO arxiv paper as a total beginner","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://tylertaewook.github.io/blog/feed.xml" title="Tyler's SandBox" /><!-- the google_analytics_id gets auto inserted from the config file -->
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QTSM840YE7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-QTSM840YE7');
+</script>
+
+
+<link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+<meta name="google-site-verification" content="1YTy_xCjpIfIYPZZ0wpiR4giLjUiG8q0lEYw8vUWHmQ" />
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Tyler&#39;s SandBox</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)</h1><p class="page-description">How I approached the well-known PPO arxiv paper as a total beginner</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-04-27T00:00:00-05:00" itemprop="datePublished">
+        Apr 27, 2021
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      2 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blog/categories/#papers">papers</a>
+        
+      
+      </p>
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#policy-optimization">Policy Optimization</a></li>
+<li class="toc-entry toc-h1"><a href="#clipped-surrogate-objective">Clipped Surrogate Objective</a></li>
+<li class="toc-entry toc-h1"><a href="#multiple-epochs-for-policy-updating">Multiple Epochs for Policy Updating</a></li>
+<li class="toc-entry toc-h1"><a href="#simplified-code-review">Simplified Code Review</a></li>
+</ul><p>“INTRO”</p>
+
+<p>In this post, I try to accomplish the following:</p>
+<ul>
+  <li>Discuss the motives behind PPO by providing a brief overview of Policy Gradient Methods and Trust Region Methods(<code class="language-plaintext highlighter-rouge">TRPO</code>)</li>
+  <li>Understand the two core contributions of <code class="language-plaintext highlighter-rouge">PPO</code>: <strong>Clipped Surrogate Objective</strong> and <strong>Multiple Epochs for Policy Updating</strong>
+</li>
+  <li>Review the simplified code implementation by <a href="https://github.com/seungeunrho/minimalRL">seungeunrho/minimalRL</a>
+</li>
+</ul>
+
+<h1 id="policy-optimization">
+<a class="anchor" href="#policy-optimization" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Policy Optimization</strong>
+</h1>
+
+<h1 id="clipped-surrogate-objective">
+<a class="anchor" href="#clipped-surrogate-objective" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Clipped Surrogate Objective</strong>
+</h1>
+
+<h1 id="multiple-epochs-for-policy-updating">
+<a class="anchor" href="#multiple-epochs-for-policy-updating" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Multiple Epochs for Policy Updating</strong>
+</h1>
+
+<h1 id="simplified-code-review">
+<a class="anchor" href="#simplified-code-review" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Simplified Code Review</strong>
+</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="n">nn</span>
+<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="n">F</span>
+<span class="kn">import</span> <span class="nn">torch.optim</span> <span class="k">as</span> <span class="n">optim</span>
+<span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Categorical</span>
+
+<span class="c1">#Hyperparameters
+</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">0.0005</span>
+<span class="n">gamma</span>         <span class="o">=</span> <span class="mf">0.98</span>
+<span class="n">lmbda</span>         <span class="o">=</span> <span class="mf">0.95</span>
+<span class="n">eps_clip</span>      <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">K_epoch</span>       <span class="o">=</span> <span class="mi">3</span>
+<span class="n">T_horizon</span>     <span class="o">=</span> <span class="mi">20</span>
+
+<span class="k">class</span> <span class="nc">PPO</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PPO</span><span class="p">,</span> <span class="bp">self</span><span class="p">).</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="p">.</span><span class="n">fc1</span>   <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">256</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">fc_pi</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">fc_v</span>  <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="p">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">pi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">softmax_dim</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">fc_pi</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">softmax_dim</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">prob</span>
+
+    <span class="k">def</span> <span class="nf">v</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">fc_v</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v</span>
+
+    <span class="k">def</span> <span class="nf">put_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">transition</span><span class="p">)</span>
+
+</code></pre></div></div>
+<p>hi</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">def</span> <span class="nf">make_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s_lst</span><span class="p">,</span> <span class="n">a_lst</span><span class="p">,</span> <span class="n">r_lst</span><span class="p">,</span> <span class="n">s_prime_lst</span><span class="p">,</span> <span class="n">prob_a_lst</span><span class="p">,</span> <span class="n">done_lst</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">transition</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">,</span> <span class="n">prob_a</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">transition</span>
+
+            <span class="n">s_lst</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="n">a_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">a</span><span class="p">])</span>
+            <span class="n">r_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">r</span><span class="p">])</span>
+            <span class="n">s_prime_lst</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_prime</span><span class="p">)</span>
+            <span class="n">prob_a_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">prob_a</span><span class="p">])</span>
+            <span class="n">done_mask</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">done</span> <span class="k">else</span> <span class="mi">1</span>
+            <span class="n">done_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">done_mask</span><span class="p">])</span>
+
+        <span class="n">s</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">s_prime</span><span class="p">,</span><span class="n">done_mask</span><span class="p">,</span> <span class="n">prob_a</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">s_lst</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="nb">float</span><span class="p">),</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">a_lst</span><span class="p">),</span> \
+                                          <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">r_lst</span><span class="p">),</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">s_prime_lst</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="nb">float</span><span class="p">),</span> \
+                                          <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">done_lst</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="nb">float</span><span class="p">),</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">prob_a_lst</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">,</span> <span class="n">done_mask</span><span class="p">,</span> <span class="n">prob_a</span>
+
+    <span class="k">def</span> <span class="nf">train_net</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">,</span> <span class="n">done_mask</span><span class="p">,</span> <span class="n">prob_a</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">make_batch</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K_epoch</span><span class="p">):</span>
+            <span class="n">td_target</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">v</span><span class="p">(</span><span class="n">s_prime</span><span class="p">)</span> <span class="o">*</span> <span class="n">done_mask</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">td_target</span> <span class="o">-</span> <span class="bp">self</span><span class="p">.</span><span class="n">v</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span><span class="p">.</span><span class="n">detach</span><span class="p">().</span><span class="n">numpy</span><span class="p">()</span>
+
+            <span class="n">advantage_lst</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">advantage</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">delta_t</span> <span class="ow">in</span> <span class="n">delta</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">advantage</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">lmbda</span> <span class="o">*</span> <span class="n">advantage</span> <span class="o">+</span> <span class="n">delta_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">advantage_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">advantage</span><span class="p">])</span>
+            <span class="n">advantage_lst</span><span class="p">.</span><span class="n">reverse</span><span class="p">()</span>
+            <span class="n">advantage</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">advantage_lst</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="nb">float</span><span class="p">)</span>
+
+            <span class="n">pi</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">pi</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">softmax_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">pi_a</span> <span class="o">=</span> <span class="n">pi</span><span class="p">.</span><span class="n">gather</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>
+            <span class="n">ratio</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="n">pi_a</span><span class="p">)</span> <span class="o">-</span> <span class="n">torch</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="n">prob_a</span><span class="p">))</span>  <span class="c1"># a/b == exp(log(a)-log(b))
+</span>
+            <span class="n">surr1</span> <span class="o">=</span> <span class="n">ratio</span> <span class="o">*</span> <span class="n">advantage</span>
+            <span class="n">surr2</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">ratio</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">eps_clip</span><span class="p">,</span> <span class="mi">1</span><span class="o">+</span><span class="n">eps_clip</span><span class="p">)</span> <span class="o">*</span> <span class="n">advantage</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="p">.</span><span class="nb">min</span><span class="p">(</span><span class="n">surr1</span><span class="p">,</span> <span class="n">surr2</span><span class="p">)</span> <span class="o">+</span> <span class="n">F</span><span class="p">.</span><span class="n">smooth_l1_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">v</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">,</span> <span class="n">td_target</span><span class="p">.</span><span class="n">detach</span><span class="p">())</span>
+
+            <span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span><span class="p">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">loss</span><span class="p">.</span><span class="n">mean</span><span class="p">().</span><span class="n">backward</span><span class="p">()</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span><span class="p">.</span><span class="n">step</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>hi</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="p">.</span><span class="n">make</span><span class="p">(</span><span class="s">'CartPole-v1'</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">PPO</span><span class="p">()</span>
+<span class="n">score</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">print_interval</span> <span class="o">=</span> <span class="mi">20</span>
+
+<span class="k">for</span> <span class="n">n_epi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">):</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">env</span><span class="p">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">done</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T_horizon</span><span class="p">):</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">model</span><span class="p">.</span><span class="n">pi</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">s</span><span class="p">).</span><span class="nb">float</span><span class="p">())</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">Categorical</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">m</span><span class="p">.</span><span class="n">sample</span><span class="p">().</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">s_prime</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="p">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+        <span class="n">model</span><span class="p">.</span><span class="n">put_data</span><span class="p">((</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="o">/</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">,</span> <span class="n">prob</span><span class="p">[</span><span class="n">a</span><span class="p">].</span><span class="n">item</span><span class="p">(),</span> <span class="n">done</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s_prime</span>
+
+        <span class="n">score</span> <span class="o">+=</span> <span class="n">r</span>
+        <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="n">model</span><span class="p">.</span><span class="n">train_net</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">n_epi</span><span class="o">%</span><span class="n">print_interval</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">n_epi</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"# of episode :{}, avg score : {:.1f}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">n_epi</span><span class="p">,</span> <span class="n">score</span><span class="o">/</span><span class="n">print_interval</span><span class="p">))</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<span class="n">env</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
+<span class="n">main</span><span class="p">()</span>
+
+</code></pre></div></div>
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="tylertaewook/blog"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/blog/papers/2021/04/27/PPO.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>Blog</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/tylertaewook" title="tylertaewook"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/tylertaewook" title="tylertaewook"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
