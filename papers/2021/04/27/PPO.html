@@ -127,7 +127,6 @@ window.onload = wrap_img;
 
   <div class="post-content e-content" itemprop="articleBody">
     <ul class="section-nav">
-<li class="toc-entry toc-h2"><a href="#review-the-simplified-code-implementation-by-seungeunrhominimalrl">Review the simplified code implementation by seungeunrho/minimalRL</a></li>
 <li class="toc-entry toc-h1"><a href="#motives">Motives</a>
 <ul>
 <li class="toc-entry toc-h2"><a href="#destructive-policy-updates">Destructive Policy Updates</a></li>
@@ -136,31 +135,30 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h1"><a href="#clipped-surrogate-objective">Clipped Surrogate Objective</a></li>
 <li class="toc-entry toc-h1"><a href="#multiple-epochs-for-policy-updating">Multiple Epochs for Policy Updating</a></li>
 <li class="toc-entry toc-h1"><a href="#simplified-code-review">Simplified Code Review</a></li>
-</ul><p>Research in policy gradient methods has been prevalent in recent years, with reinforcement algorithms such as <code class="language-plaintext highlighter-rouge">TRPO</code>, <code class="language-plaintext highlighter-rouge">GAE</code>, and <code class="language-plaintext highlighter-rouge">A2C/A3C</code> showing state-of-the-art performance over traditional methods such as Q-learning. One of the core algorithms in this policy gradient/actor-critic field is <strong>Proximal Policy Optimization Algorithm</strong> implemented by OpenAI.</p>
+</ul><p>Research in policy gradient methods has been prevalent in recent years, with algorithms such as <code class="language-plaintext highlighter-rouge">TRPO</code>, <code class="language-plaintext highlighter-rouge">GAE</code>, and <code class="language-plaintext highlighter-rouge">A2C/A3C</code> showing state-of-the-art performance over traditional methods such as Q-learning. One of the core algorithms in this policy gradient/actor-critic field is <strong>Proximal Policy Optimization Algorithm</strong> implemented by OpenAI.</p>
 
 <p>In this post, I try to accomplish the following:</p>
 <ul>
   <li>Discuss the motives behind PPO by providing a brief overview of Policy Gradient Methods and Trust Region Methods(<code class="language-plaintext highlighter-rouge">TRPO</code>)</li>
   <li>Understand the two core contributions of <code class="language-plaintext highlighter-rouge">PPO</code>: <strong>Clipped Surrogate Objective</strong> and <strong>Multiple Epochs for Policy Updating</strong>
 </li>
-  <li>
-    <h2 id="review-the-simplified-code-implementation-by-seungeunrhominimalrl">
-<a class="anchor" href="#review-the-simplified-code-implementation-by-seungeunrhominimalrl" aria-hidden="true"><span class="octicon octicon-link"></span></a>Review the simplified code implementation by <a href="https://github.com/seungeunrho/minimalRL">seungeunrho/minimalRL</a>
-</h2>
-    <h1 id="motives">
+  <li>Review the simplified code implementation by <a href="https://github.com/seungeunrho/minimalRL">seungeunrho/minimalRL</a>
+</li>
+</ul>
+
+<hr>
+<h1 id="motives">
 <a class="anchor" href="#motives" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Motives</strong>
 </h1>
-  </li>
-</ul>
 
 <h2 id="destructive-policy-updates">
 <a class="anchor" href="#destructive-policy-updates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Destructive Policy Updates</h2>
 
 <p>The optimization objective, or the gradient law, of Policy Gradient methods is defined as following:</p>
 
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/njfaaykq0a4e6md4yr20.png" alt="policyloss"></p>
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/lxdvqu1lno5xulbujb9l.jpeg" alt="policyloss"></p>
 
-<p>The policy <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> is our neural network that takes the state observation from an environment as an input and suggest actions to take as an output. The advantage A hat is an estimation, hence the hat over A, of the relative value of selected action in current state.</p>
+<p>The policy <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> is our neural network that takes the state observation from an environment as an input and suggest actions to take as an output. The advantage <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>A</mi><mo>^</mo></mover></mrow><annotation encoding="application/x-tex">\hat{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9467699999999999em;vertical-align:0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9467699999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">A</span></span></span><span style="top:-3.25233em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.11110999999999999em;">^</span></span></span></span></span></span></span></span></span> is an estimation, hence the hat over A, of the relative value for selected action in current state.</p>
 
 <hr>
 
