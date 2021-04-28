@@ -110,7 +110,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      4 min read
+      5 min read
     
 </span></p>
 
@@ -130,6 +130,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h1"><a href="#motives">Motives</a>
 <ul>
 <li class="toc-entry toc-h2"><a href="#destructive-policy-updates">Destructive Policy Updates</a></li>
+<li class="toc-entry toc-h2"><a href="#trust-region-policy-optimization">Trust Region Policy Optimization</a></li>
 </ul>
 </li>
 <li class="toc-entry toc-h1"><a href="#clipped-surrogate-objective">Clipped Surrogate Objective</a></li>
@@ -158,7 +159,14 @@ window.onload = wrap_img;
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/lxdvqu1lno5xulbujb9l.jpeg" alt="policyloss"></p>
 
-<p>The policy <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> is our neural network that takes the state observation from an environment as an input and suggest actions to take as an output. The advantage <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>A</mi><mo>^</mo></mover></mrow><annotation encoding="application/x-tex">\hat{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9467699999999999em;vertical-align:0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9467699999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">A</span></span></span><span style="top:-3.25233em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.11110999999999999em;">^</span></span></span></span></span></span></span></span></span> is an estimation, hence the hat over A, of the relative value for selected action in current state.</p>
+<p>The policy <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> is our neural network that takes the state observation from an environment as an input and suggest actions to take as an output. The advantage <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>A</mi><mo>^</mo></mover></mrow><annotation encoding="application/x-tex">\hat{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9467699999999999em;vertical-align:0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9467699999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">A</span></span></span><span style="top:-3.25233em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.11110999999999999em;">^</span></span></span></span></span></span></span></span></span> is an estimation, hence the hat over A, of the relative value for selected action in current state. It is computed as <em>discounted reward - value function</em>, where value function basically gives an estimate of discounted sum of reward. When training, this neural net representing the value function will frequently be updated using the experience our agent collects in an environment. However, that also means the <strong>value estimate will be very noisy due to the variance caused by the network</strong>; network is not always going to predict the exact value of that state.</p>
+
+<p>Multiplying log probabilities of policy’s output and advantage function gives us a clever optimization function. If advantage is positive, meaning the actions the agent took in the sample trajectory resulted in better than average return, policy gradient would be positive to increase the probability of selecting these actions again when we encounter a similar state. If advantage is negative, policy gradient would be negative to do the exact opposite.</p>
+
+<p>As much appealing it is to constantly perform gradient descent steps in one batch of collected experience, it will often update the parameters so far outside of the range where this data was collected that leads to <strong>“destructively large policy updates.”</strong></p>
+
+<h2 id="trust-region-policy-optimization">
+<a class="anchor" href="#trust-region-policy-optimization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Trust Region Policy Optimization</h2>
 
 <hr>
 
