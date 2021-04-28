@@ -110,7 +110,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      8 min read
+      7 min read
     
 </span></p>
 
@@ -136,6 +136,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h1"><a href="#clipped-surrogate-objective">Clipped Surrogate Objective</a></li>
 <li class="toc-entry toc-h1"><a href="#multiple-epochs-for-policy-updating">Multiple Epochs for Policy Updating</a></li>
 <li class="toc-entry toc-h1"><a href="#simplified-code-review">Simplified Code Review</a></li>
+<li class="toc-entry toc-h1"><a href="#resources">Resources</a></li>
 </ul><p>Research in policy gradient methods has been prevalent in recent years, with algorithms such as <code class="language-plaintext highlighter-rouge">TRPO</code>, <code class="language-plaintext highlighter-rouge">GAE</code>, and <code class="language-plaintext highlighter-rouge">A2C/A3C</code> showing state-of-the-art performance over traditional methods such as Q-learning. One of the core algorithms in this policy gradient/actor-critic field is <strong>Proximal Policy Optimization Algorithm</strong> implemented by OpenAI.</p>
 
 <p>In this post, I try to accomplish the following:</p>
@@ -159,7 +160,7 @@ window.onload = wrap_img;
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/lxdvqu1lno5xulbujb9l.jpeg" alt="policyloss"></p>
 
-<p>The policy <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> is our neural network that takes the state observation from an environment as an input and suggest actions to take as an output. The advantage <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>A</mi><mo>^</mo></mover></mrow><annotation encoding="application/x-tex">\hat{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9467699999999999em;vertical-align:0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9467699999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">A</span></span></span><span style="top:-3.25233em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.11110999999999999em;">^</span></span></span></span></span></span></span></span></span> is an estimation, hence the hat over A, of the relative value for selected action in current state. It is computed as <em>discounted reward - value function</em>, where value function basically gives an estimate of discounted sum of reward. When training, this neural net representing the value function will frequently be updated using the experience our agent collects in an environment. However, that also means the <strong>value estimate will be very noisy due to the variance caused by the network</strong>; network is not always going to predict the exact value of that state.</p>
+<p>The policy <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> is our neural network that takes the state observation from an enviroment as an input and suggest actions to take as an output. The advantage <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>A</mi><mo>^</mo></mover></mrow><annotation encoding="application/x-tex">\hat{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9467699999999999em;vertical-align:0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9467699999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">A</span></span></span><span style="top:-3.25233em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.11110999999999999em;">^</span></span></span></span></span></span></span></span></span> is an estimation, hence the hat over A, of the relative value for selected action in current state. It is computed as <em>discounted reward - value function</em>, where value function basically gives an estimate of discounted sum of reward. When training, this neural net representing the value function will frequently be updated using the experience our agent collects in an environment. However, that also means the <strong>value estimate will be very noisy due to the variance caused by the network</strong>; network is not always going to predict the exact value of that state.</p>
 
 <p>Multiplying log probabilities of policy’s output and advantage function gives us a clever optimization function. If advantage is positive, meaning the actions the agent took in the sample trajectory resulted in better than average return, policy gradient would be positive to increase the probability of selecting these actions again when we encounter a similar state. If advantage is negative, policy gradient would be negative to do the exact opposite.</p>
 
@@ -168,79 +169,42 @@ window.onload = wrap_img;
 <h2 id="trust-region-policy-optimization">
 <a class="anchor" href="#trust-region-policy-optimization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Trust Region Policy Optimization</h2>
 
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/cqnlql1bjcvmvskrr7tj.jpeg" alt="trpo"></p>
+<p>One of the approaches to prevent such destructive policy updates was <em>Trust Region Policy Optimization (Schulman et al, 2015)</em>. In this paper, authors implemented an algorithm to limit the policy gradient step so it does not move too much away from the original policy, causing overly large updates that often ruins the policy altogether.</p>
 
-<p>make sure you’re never moving too much away from original policy</p>
+<p>First, we define r(θ) as a probability ratio between the action under current policy and the action under the previous policy.
+<img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/fxmddi7va3pwkvsl4ua4.jpeg" alt="trpo"></p>
 
-<p>if you compare to origal vanilla policy gradient method, the only thingn that’s changed is the log operator is replaced with the division by pi theta old. optimizing this trpo objective is identical to vanilla policy gradients</p>
+<p>Given a sequence of sampled actions and states, r(θ) will be greater than one if the particular action is more probable for the current policy than it is for the old policy. It will be between 0 and 1 when the action is less probable for our current policy.</p>
 
-<p>trpo adds a KL constraint to prevent moving away -&gt; just making sure new updated policy doesn’t move too far away. stay close to the trust region where we know everything works fine
-problem -&gt; KL constraint adds additional overhead to our optimization process and can sometimes lead to undesirable training behavior.</p>
+<p>Now if we multiply this r(θ) with the previously mentioned advantage function, we get the TRPO’s objective in a more readable format:
+<img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/cqnlql1bjcvmvskrr7tj.jpeg" alt="trpo"></p>
 
-<hr>
+<p>In this TRPO method, we notice that it is actually quite similar to the vanilla policy gradient method on the left. In fact, the only difference here is that the log operator is replaced with the probability of the action of current policy divided by the probability of the action under previous policy. Optimizing this objective function is identical otherwise.</p>
 
-<p>policy gradient usually starts by defining the gradient laws by the expectation over the log of policy actions times the estimate of the advantage function.</p>
-
-<p>pi theta is our policy; the neural network that takes the observed states from the envirionment and suggests actions to take as an output, a basically tries to estimate what the relative value is of the selected action in the current state.</p>
-
-<p>Advantage function is computed by: Discounted reward - baseline estimate(value function)</p>
-
-<p>value function gives an estimate of the discounted sum of reward. Basically trying to guess what the final reward would be. During training, this neural net representing the value function will be frequently updated using the experience that our agent collects in an environment (basically a supervised learning problem). Because this value estimate is an output of a neural net, it’s gonna be a noisy estimate; there’s gonna be some variance because our network is not going to always predict the exact value of that state.</p>
-
-<p>how much better was the action I took based on the expectation of what would normally happen in the state I was in. was the action our agent took better than expected or worse.</p>
-
-<p>So multiplying these two gets the final optimization function.</p>
-<ul>
-  <li>If advantage was positive (actions the agent took in the sample trajectory resulted in better than avg return): increase  the probability of selecting them again in the future when we encounter in the same state. gradient is positive.</li>
-</ul>
-
-<p>reduce the likelihood of selected actions if negative advantage.</p>
-
-<p>If you simple keep running gradient descent in one batch of collected experience, you’ll update the parameters in your network so far outside of the range where this data was collected that for example the advantage function(noisy estimate of real advantage) is gonna be completely wrong -&gt; destroy policy if you keep running GD on single batch of collected experience</p>
+<p>Additionally, TRPO added a KL constraint limit the gradient step from moving the policy too far away from original policy. This results in the gradient staying in the region where we know everything works fine, hence the name ‘trust region.’ However, this KL constraint is known to add a overhead to our optimization process which sometimes lead to an undesirable training behavior.</p>
 
 <h1 id="clipped-surrogate-objective">
 <a class="anchor" href="#clipped-surrogate-objective" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Clipped Surrogate Objective</strong>
 </h1>
 
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/fxmddi7va3pwkvsl4ua4.jpeg" alt="trpo"></p>
+<p>With the motives mentioned above, Proximal Policy Optimization attempts to simplify the optimization process while retaining the advantages of TRPO. One of this paper’s main contribution is the clipped surrogate objective:
+<img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ei8qt1hdgo9ewfgyjiw0.jpeg" alt="trpo"></p>
 
-<p>first let’s define r theta which is a probability ratio between  the new updated policy outputs and the outputs of previous old version of policy network8
- given a sequence of sampled actions and states, r theta will be larger than one if action is more likely now than it was in the old version.</p>
+<p>Here, we compute an expectation over the minimum of two terms: <em>normal PG objective</em> and <em>clipped PG objective</em>. The key component comes from the second term where a normal PG objective is truncated with a clipping operation between <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi mathvariant="normal">/</mi><mi>e</mi><mi>p</mi><mi>s</mi><mi>i</mi><mi>l</mi><mi>o</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">1-/epsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">/</span><span class="mord mathdefault">e</span><span class="mord mathdefault">p</span><span class="mord mathdefault">s</span><span class="mord mathdefault">i</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault">n</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>+</mo><mi mathvariant="normal">/</mi><mi>e</mi><mi>p</mi><mi>s</mi><mi>i</mi><mi>l</mi><mi>o</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">1+/epsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">/</span><span class="mord mathdefault">e</span><span class="mord mathdefault">p</span><span class="mord mathdefault">s</span><span class="mord mathdefault">i</span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault">o</span><span class="mord mathdefault">n</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">ϵ</span></span></span></span> being the hyperparameter.</p>
 
-<p>multiply r theta with the advantage function -&gt; normal trpo objective in more readable format.</p>
-
-<p>central objective function:</p>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/vy8tdlz8mlsogw964y89.jpeg" alt="trpo"></p>
-
-<p>expectation: will compute over batches of trajectories. this expectation is taken over minumum of two terms: r theta * advantage (default objective for normal policy gradients).
- second term: similar version of first one, but it’s a truncated version of r theta ratio by applying clipping operation btw 1-ep 1+ep, ep</p>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ei8qt1hdgo9ewfgyjiw0.jpeg" alt="trpo"></p>
-
-<p>looks rather simple.</p>
-
-<p>advantage estimate can be both positive and negative. (figure)</p>
+<p>Because of the min operation, this objective behaves differently when advantage estimate is positive or negative.</p>
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/u2juchutsvo1xze9wvsb.jpeg" alt="trpo"></p>
 
-<p>positive: all cases when selected action had better-than-expected effect on the outcome.</p>
-<ul>
-  <li>loss funhctions flatten out when R gets too high: action is a lot more likely under current policy than it was under old policy. we don’t want to overdo the action update too much so the objective function gets clipped to limit the effect of gradient update</li>
-</ul>
+<p>Let’s first take a look at the left figure depecting postive advantage: the case when selected action had better-than-expected effect on the outcome. In the graph, the loss function flattens out when <em>r</em> gets too high or when action is a lot more likely under current policy than it was under old policy. We do not want to overdo the action update by taking a step too far, so we ‘clip’ the objective to prevent this as well as blocking the gradient with a flat line.</p>
 
-<p>negative: situations where action had estimated negative effect on outcome.</p>
-<ul>
-  <li>flattens when R goes near zero. much less likely now in the old policy.</li>
-</ul>
+<p>The same applies to the right figure when advantage estimate is negative. The loss function would flatten out when <em>r</em> goes near zero, meaning particular action is much less likely on current policy.</p>
 
-<p>as mentioned before, advantage estimate is very noisy, so we don’t want to destroy a policy based on a single estimate.</p>
+<p>As clever this approach is, the clipping operation also helps us out for ‘undoing’ policy’s mistakes. For example, the highlighted part in the right figure shows the region where last gradient step made the selected action a lot more probable while also making the policy worse as shown with a negative advantage. Thankfully, our clipping operation will kindly tell the gradient to walk the other direction in proportional to amount we messed up. This is the only part where the first term inside <code class="language-plaintext highlighter-rouge">min()</code>  is lower than the second term, acting as a backup plan. And the most beautiful part is that PPO does all of this without having to compute additional KL constraints unlike TRPO.</p>
 
-<p>this region where last gradient step made the selected action a lot more probably (r is big) while also making policy worse since advantage is negative here. we want to undo the last gradient step. this does the exact thing as gradient will tell us to walk the other direction and make the action less probably proportional to how much we screwed up. This is the only part where normal PG obj is lower than clipped PG obj</p>
+<p>All of these ideas can be summarized in the final loss function by summing this clipped PPO objective and two additional terms:</p>
 
-<p>PPO does TRPO without having to compute additional KL constraints. often outperformed.</p>
-
-<p>final loss function is the sum of this clipped ppo objective + two terms</p>
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/b0li9mepq9kejekuuek0.jpeg" alt="trpo"></p>
 
 <p>first term: in charge of updating the baseline network. how good it is to be in this state. avg amount of expected discounted reward.</p>
 
@@ -249,6 +213,8 @@ problem -&gt; KL constraint adds additional overhead to our optimization process
 <h1 id="multiple-epochs-for-policy-updating">
 <a class="anchor" href="#multiple-epochs-for-policy-updating" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Multiple Epochs for Policy Updating</strong>
 </h1>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/b0li9mepq9kejekuuek0.jpeg" alt="algorithm"></p>
 
 <h1 id="simplified-code-review">
 <a class="anchor" href="#simplified-code-review" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Simplified Code Review</strong>
@@ -382,6 +348,20 @@ problem -&gt; KL constraint adds additional overhead to our optimization process
 <span class="n">main</span><span class="p">()</span>
 
 </code></pre></div></div>
+
+<h1 id="resources">
+<a class="anchor" href="#resources" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Resources</strong>
+</h1>
+<ul>
+  <li>
+    <p><a href="https://arxiv.org/abs/1901.11275">arxiv: A Theory of Regularized Markov Decision Processes</a></p>
+  </li>
+  <li><a href="https://stackoverflow.com/questions/46422845/what-is-the-way-to-understand-proximal-policy-optimization-algorithm-in-rl">Stack Overflow - PPO keypoints</a></li>
+  <li><a href="https://www.youtube.com/watch?v=5P7I-xPq8u8&amp;ab_channel=ArxivInsights">Arxiv Insights PPO Review</a></li>
+  <li>
+<a href="https://www.youtube.com/watch?v=L-QYXtJmXrc&amp;ab_channel=%ED%8C%A1%EC%9A%94%EB%9E%A9Pang-YoLab">Pang-YoLab’s PPO Review</a> (한글)</li>
+  <li><a href="https://www.youtube.com/watch?v=l1CZQWBkdcY&amp;ab_channel=%ED%8C%A1%EC%9A%94%EB%9E%A9Pang-YoLab">Pang-YoLab’s PPO Implementation</a></li>
+</ul>
 
   </div><!-- from https://github.com/utterance/utterances -->
 <script src="https://utteranc.es/client.js"
