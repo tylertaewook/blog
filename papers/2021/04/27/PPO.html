@@ -110,7 +110,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      5 min read
+      8 min read
     
 </span></p>
 
@@ -140,7 +140,7 @@ window.onload = wrap_img;
 
 <p>In this post, I try to accomplish the following:</p>
 <ul>
-  <li>Discuss the motives behind PPO by providing a brief overview of Policy Gradient Methods and Trust Region Methods(<code class="language-plaintext highlighter-rouge">TRPO</code>)</li>
+  <li>Discuss the motives behind PPO by providing a beginner-friendly overview of Policy Gradient Methods and Trust Region Methods(<code class="language-plaintext highlighter-rouge">TRPO</code>)</li>
   <li>Understand the two core contributions of <code class="language-plaintext highlighter-rouge">PPO</code>: <strong>Clipped Surrogate Objective</strong> and <strong>Multiple Epochs for Policy Updating</strong>
 </li>
   <li>Review the simplified code implementation by <a href="https://github.com/seungeunrho/minimalRL">seungeunrho/minimalRL</a>
@@ -168,6 +168,15 @@ window.onload = wrap_img;
 <h2 id="trust-region-policy-optimization">
 <a class="anchor" href="#trust-region-policy-optimization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Trust Region Policy Optimization</h2>
 
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/cqnlql1bjcvmvskrr7tj.jpeg" alt="trpo"></p>
+
+<p>make sure you’re never moving too much away from original policy</p>
+
+<p>if you compare to origal vanilla policy gradient method, the only thingn that’s changed is the log operator is replaced with the division by pi theta old. optimizing this trpo objective is identical to vanilla policy gradients</p>
+
+<p>trpo adds a KL constraint to prevent moving away -&gt; just making sure new updated policy doesn’t move too far away. stay close to the trust region where we know everything works fine
+problem -&gt; KL constraint adds additional overhead to our optimization process and can sometimes lead to undesirable training behavior.</p>
+
 <hr>
 
 <p>policy gradient usually starts by defining the gradient laws by the expectation over the log of policy actions times the estimate of the advantage function.</p>
@@ -192,6 +201,50 @@ window.onload = wrap_img;
 <h1 id="clipped-surrogate-objective">
 <a class="anchor" href="#clipped-surrogate-objective" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Clipped Surrogate Objective</strong>
 </h1>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/fxmddi7va3pwkvsl4ua4.jpeg" alt="trpo"></p>
+
+<p>first let’s define r theta which is a probability ratio between  the new updated policy outputs and the outputs of previous old version of policy network8
+ given a sequence of sampled actions and states, r theta will be larger than one if action is more likely now than it was in the old version.</p>
+
+<p>multiply r theta with the advantage function -&gt; normal trpo objective in more readable format.</p>
+
+<p>central objective function:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/vy8tdlz8mlsogw964y89.jpeg" alt="trpo"></p>
+
+<p>expectation: will compute over batches of trajectories. this expectation is taken over minumum of two terms: r theta * advantage (default objective for normal policy gradients).
+ second term: similar version of first one, but it’s a truncated version of r theta ratio by applying clipping operation btw 1-ep 1+ep, ep</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ei8qt1hdgo9ewfgyjiw0.jpeg" alt="trpo"></p>
+
+<p>looks rather simple.</p>
+
+<p>advantage estimate can be both positive and negative. (figure)</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/u2juchutsvo1xze9wvsb.jpeg" alt="trpo"></p>
+
+<p>positive: all cases when selected action had better-than-expected effect on the outcome.</p>
+<ul>
+  <li>loss funhctions flatten out when R gets too high: action is a lot more likely under current policy than it was under old policy. we don’t want to overdo the action update too much so the objective function gets clipped to limit the effect of gradient update</li>
+</ul>
+
+<p>negative: situations where action had estimated negative effect on outcome.</p>
+<ul>
+  <li>flattens when R goes near zero. much less likely now in the old policy.</li>
+</ul>
+
+<p>as mentioned before, advantage estimate is very noisy, so we don’t want to destroy a policy based on a single estimate.</p>
+
+<p>this region where last gradient step made the selected action a lot more probably (r is big) while also making policy worse since advantage is negative here. we want to undo the last gradient step. this does the exact thing as gradient will tell us to walk the other direction and make the action less probably proportional to how much we screwed up. This is the only part where normal PG obj is lower than clipped PG obj</p>
+
+<p>PPO does TRPO without having to compute additional KL constraints. often outperformed.</p>
+
+<p>final loss function is the sum of this clipped ppo objective + two terms</p>
+
+<p>first term: in charge of updating the baseline network. how good it is to be in this state. avg amount of expected discounted reward.</p>
+
+<p>second term: entropy term in charge to make sure our agent does enough exploration. this term will push the policy to behave a little bit more randomly until the other part of obj start dominating.</p>
 
 <h1 id="multiple-epochs-for-policy-updating">
 <a class="anchor" href="#multiple-epochs-for-policy-updating" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Multiple Epochs for Policy Updating</strong>
