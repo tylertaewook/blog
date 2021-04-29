@@ -110,7 +110,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      7 min read
+      8 min read
     
 </span></p>
 
@@ -133,8 +133,12 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h2"><a href="#trust-region-policy-optimization">Trust Region Policy Optimization</a></li>
 </ul>
 </li>
-<li class="toc-entry toc-h1"><a href="#clipped-surrogate-objective">Clipped Surrogate Objective</a></li>
-<li class="toc-entry toc-h1"><a href="#multiple-epochs-for-policy-updating">Multiple Epochs for Policy Updating</a></li>
+<li class="toc-entry toc-h1"><a href="#ppo">PPO</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#clipped-surrogate-objective">Clipped Surrogate Objective</a></li>
+<li class="toc-entry toc-h2"><a href="#multiple-epochs-for-policy-updating">Multiple Epochs for Policy Updating</a></li>
+</ul>
+</li>
 <li class="toc-entry toc-h1"><a href="#simplified-code-review">Simplified Code Review</a></li>
 <li class="toc-entry toc-h1"><a href="#resources">Resources</a></li>
 </ul><p>Research in policy gradient methods has been prevalent in recent years, with algorithms such as TRPO, GAE, and A2C/A3C showing state-of-the-art performance over traditional methods such as Q-learning. One of the core algorithms in this policy gradient/actor-critic field is <strong>Proximal Policy Optimization Algorithm</strong> implemented by OpenAI.</p>
@@ -142,7 +146,7 @@ window.onload = wrap_img;
 <p>In this post, I try to accomplish the following:</p>
 <ul>
   <li>Discuss the motives behind PPO by providing a beginner-friendly overview of Policy Gradient Methods and Trust Region Methods(TRPO)</li>
-  <li>Understand the two core contributions of PPO: <strong>Clipped Surrogate Objective</strong> and <strong>Multiple Epochs for Policy Updating</strong>
+  <li>Understand the core contribution of PPO: <strong>Clipped Surrogate Objective</strong>
 </li>
   <li>Review the simplified code implementation by <a href="https://github.com/seungeunrho/minimalRL">seungeunrho/minimalRL</a>
 </li>
@@ -183,9 +187,12 @@ window.onload = wrap_img;
 
 <p>Additionally, TRPO added a KL constraint limit the gradient step from moving the policy too far away from original policy. This results in the gradient staying in the region where we know everything works fine, hence the name ‘trust region.’ However, this KL constraint is known to add a overhead to our optimization process which sometimes lead to an undesirable training behavior.</p>
 
-<h1 id="clipped-surrogate-objective">
-<a class="anchor" href="#clipped-surrogate-objective" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Clipped Surrogate Objective</strong>
+<h1 id="ppo">
+<a class="anchor" href="#ppo" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>PPO</strong>
 </h1>
+
+<h2 id="clipped-surrogate-objective">
+<a class="anchor" href="#clipped-surrogate-objective" aria-hidden="true"><span class="octicon octicon-link"></span></a>Clipped Surrogate Objective</h2>
 
 <p>With the motives mentioned above, Proximal Policy Optimization attempts to simplify the optimization process while retaining the advantages of TRPO. One of this paper’s main contribution is the clipped surrogate objective:
 <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ei8qt1hdgo9ewfgyjiw0.jpeg" alt="trpo"></p>
@@ -194,7 +201,7 @@ window.onload = wrap_img;
 
 <p>Because of the min operation, this objective behaves differently when advantage estimate is positive or negative.</p>
 
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/u2juchutsvo1xze9wvsb.jpeg" alt="trpo"></p>
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/p559riwdtpb94jxchrf2.jpeg" alt="trpo"></p>
 
 <p>Let’s first take a look at the left figure depecting postive advantage: the case when selected action had better-than-expected effect on the outcome. In the graph, the loss function flattens out when <em>r</em> gets too high or when action is a lot more likely under current policy than it was under old policy. We do not want to overdo the action update by taking a step too far, so we ‘clip’ the objective to prevent this as well as blocking the gradient with a flat line.</p>
 
@@ -206,15 +213,20 @@ window.onload = wrap_img;
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/b0li9mepq9kejekuuek0.jpeg" alt="trpo"></p>
 
-<p>First term: in charge of updating the baseline network. how good it is to be in this state. avg amount of expected discounted reward.</p>
+<p>The c1 and c2 are hyperparameters. The first term is a mean square error of value function in charge of updating the baseline network. The second term, which may look unfamiliar, is an entropy term used to ensure enough exploration for our agents. This term will push the policy to behave more spontaneously until the other part of the objective starts dominating.</p>
 
-<p>second term: entropy term in charge to make sure our agent does enough exploration. this term will push the policy to behave a little bit more randomly until the other part of obj start dominating.</p>
+<h2 id="multiple-epochs-for-policy-updating">
+<a class="anchor" href="#multiple-epochs-for-policy-updating" aria-hidden="true"><span class="octicon octicon-link"></span></a>Multiple Epochs for Policy Updating</h2>
 
-<h1 id="multiple-epochs-for-policy-updating">
-<a class="anchor" href="#multiple-epochs-for-policy-updating" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Multiple Epochs for Policy Updating</strong>
-</h1>
+<p>Finally, let’s take a look at the algorithm altogether and its beauty of parallel actors:</p>
 
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/b0li9mepq9kejekuuek0.jpeg" alt="algorithm"></p>
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8w5kbcyezwdqj3m5ce7g.jpeg" alt="algorithm"></p>
+
+<p>Algorithm consists of two large threads: the beige-thread and the green-thread. The beige-threads collect data, calculate advantage estimates, and sample mini-batches for the green-thread to use. One special take: these are done by <em>N</em> parallel actors each doing their own tasks independently.</p>
+
+<p>Running multiple epochs of gradient descent on samples was uncommon because of the risk of destructively large policy updates. However, with the help of PPO’s Clipped Surrogate Objective, we can take advantage of parallel actors to improve on sample efficiency.</p>
+
+<p>Every once in a while, green-thread will fire and run Stochastic Gradient Descent on our clipped loss function. Another special take? We can run <em>K</em> epochs of optimization on the same trajectory sample. This was also hard to do pre-PPO due to the risk of taking large steps on local samples, but PPO prevents this while allowing us to learn more from each trajectory.</p>
 
 <h1 id="simplified-code-review">
 <a class="anchor" href="#simplified-code-review" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Simplified Code Review</strong>
