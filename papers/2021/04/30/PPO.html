@@ -10,14 +10,14 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="How I approached the PPO arxiv paper as a complete beginner" />
 <meta property="og:description" content="How I approached the PPO arxiv paper as a complete beginner" />
-<link rel="canonical" href="https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html" />
-<meta property="og:url" content="https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html" />
+<link rel="canonical" href="https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html" />
+<meta property="og:url" content="https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html" />
 <meta property="og:site_name" content="Tyler’s SandBox" />
 <meta property="og:image" content="https://tylertaewook.github.io/blog/images/ppo.jpeg" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2021-04-27T00:00:00-05:00" />
+<meta property="article:published_time" content="2021-04-30T00:00:00-05:00" />
 <script type="application/ld+json">
-{"url":"https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html","@type":"BlogPosting","headline":"Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)","dateModified":"2021-04-27T00:00:00-05:00","datePublished":"2021-04-27T00:00:00-05:00","image":"https://tylertaewook.github.io/blog/images/ppo.jpeg","mainEntityOfPage":{"@type":"WebPage","@id":"https://tylertaewook.github.io/blog/papers/2021/04/27/PPO.html"},"description":"How I approached the PPO arxiv paper as a complete beginner","@context":"https://schema.org"}</script>
+{"url":"https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html","@type":"BlogPosting","headline":"Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)","dateModified":"2021-04-30T00:00:00-05:00","datePublished":"2021-04-30T00:00:00-05:00","image":"https://tylertaewook.github.io/blog/images/ppo.jpeg","mainEntityOfPage":{"@type":"WebPage","@id":"https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html"},"description":"How I approached the PPO arxiv paper as a complete beginner","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://tylertaewook.github.io/blog/feed.xml" title="Tyler's SandBox" /><!-- the google_analytics_id gets auto inserted from the config file -->
 
@@ -104,8 +104,8 @@ window.onload = wrap_img;
         <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)</h1><p class="page-description">How I approached the PPO arxiv paper as a complete beginner</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-04-27T00:00:00-05:00" itemprop="datePublished">
-        Apr 27, 2021
+    <h1 class="post-title p-name" itemprop="name headline">Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)</h1><p class="page-description">How I approached the PPO arxiv paper as a complete beginner</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-04-30T00:00:00-05:00" itemprop="datePublished">
+        Apr 30, 2021
       </time>
        • <span class="read-time" title="Estimated read time">
     
@@ -160,22 +160,22 @@ window.onload = wrap_img;
 <h2 id="destructive-policy-updates">
 <a class="anchor" href="#destructive-policy-updates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Destructive Policy Updates</h2>
 
-<p>The optimization objective, or the gradient law, of Policy Gradient methods is defined as following:</p>
+<p>We first need to understand the optimization objective of Policy Gradient methods defined as following:</p>
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/lxdvqu1lno5xulbujb9l.jpeg" alt="policyloss"></p>
 
-<p>The policy <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> is our neural network that takes the state observation from an enviroment as an input and suggest actions to take as an output. The advantage <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>A</mi><mo>^</mo></mover></mrow><annotation encoding="application/x-tex">\hat{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9467699999999999em;vertical-align:0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9467699999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">A</span></span></span><span style="top:-3.25233em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.11110999999999999em;">^</span></span></span></span></span></span></span></span></span> is an estimation, hence the hat over A, of the relative value for selected action in current state. It is computed as <em>discounted reward - value function</em>, where value function basically gives an estimate of discounted sum of reward. When training, this neural net representing the value function will frequently be updated using the experience our agent collects in an environment. However, that also means the <strong>value estimate will be very noisy due to the variance caused by the network</strong>; network is not always going to predict the exact value of that state.</p>
+<p>The policy <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">π</span></span></span></span> is our neural network that takes the state observation from an environment as an input and suggest actions to take as an output. The advantage <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>A</mi><mo>^</mo></mover></mrow><annotation encoding="application/x-tex">\hat{A}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9467699999999999em;vertical-align:0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9467699999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">A</span></span></span><span style="top:-3.25233em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.11110999999999999em;">^</span></span></span></span></span></span></span></span></span> is an estimation, hence the hat over A, of the relative value for selected action in current state. Policy loss is computed as <em>discounted reward - value function</em>, where value function basically gives an estimate of discounted sum of reward. When training, this neural net representing the value function will frequently be updated using the experience our agent collects in an environment. However, that also means the <strong>value estimate will be very noisy due to the variance caused by the network</strong>; network is not always going to predict the exact value of that state.</p>
 
 <p>Multiplying log probabilities of policy’s output and advantage function gives us a clever optimization function. If advantage is positive, meaning the actions the agent took in the sample trajectory resulted in better than average return, policy gradient would be positive to increase the probability of selecting these actions again when we encounter a similar state. If advantage is negative, policy gradient would be negative to do the exact opposite.</p>
 
-<p>As much appealing it is to constantly perform gradient descent steps in one batch of collected experience, it will often update the parameters so far outside of the range where this data was collected that leads to <strong>“destructively large policy updates.”</strong></p>
+<p>As much appealing it is to constantly perform gradient descent steps in one batch of collected experience, it will often update the parameters so far outside of the range that leads to <strong>“destructively large policy updates.”</strong></p>
 
 <h2 id="trust-region-policy-optimization">
 <a class="anchor" href="#trust-region-policy-optimization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Trust Region Policy Optimization</h2>
 
-<p>One of the approaches to prevent such destructive policy updates was <em>Trust Region Policy Optimization (Schulman et al, 2015)</em>. In this paper, authors implemented an algorithm to limit the policy gradient step so it does not move too much away from the original policy, causing overly large updates that often ruins the policy altogether.</p>
+<p>One of the approaches to prevent such destructive policy updates was <em><a href="https://arxiv.org/abs/1502.05477">Trust Region Policy Optimization (Schulman et al, 2015)</a></em>. In this paper, authors implemented an algorithm to limit the policy gradient step so it does not move too much away from the original policy, causing overly large updates that often ruin the policy altogether.</p>
 
-<p>First, we define r(θ) as a probability ratio between the action under current policy and the action under the previous policy.
+<p>First, we define r(θ) as the probability ratio between the action under current policy and the action under the previous policy.
 <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/fxmddi7va3pwkvsl4ua4.jpeg" alt="trpo"></p>
 
 <p>Given a sequence of sampled actions and states, r(θ) will be greater than one if the particular action is more probable for the current policy than it is for the old policy. It will be between 0 and 1 when the action is less probable for our current policy.</p>
@@ -207,7 +207,7 @@ window.onload = wrap_img;
 
 <p>The same applies to the right figure when advantage estimate is negative. The loss function would flatten out when <em>r</em> goes near zero, meaning particular action is much less likely on current policy.</p>
 
-<p>As clever this approach is, the clipping operation also helps us out for ‘undoing’ policy’s mistakes. For example, the highlighted part in the right figure shows the region where last gradient step made the selected action a lot more probable while also making the policy worse as shown with a negative advantage. Thankfully, our clipping operation will kindly tell the gradient to walk the other direction in proportional to amount we messed up. This is the only part where the first term inside <code class="language-plaintext highlighter-rouge">min()</code>  is lower than the second term, acting as a backup plan. And the most beautiful part is that PPO does all of this without having to compute additional KL constraints unlike TRPO.</p>
+<p>As clever this approach is, the clipping operation also helps us out for ‘undoing’ policy’s mistakes. For example, the highlighted part in the right figure shows the region where last gradient step made the selected action a lot more probable while also making the policy worse as shown with a negative advantage. Thankfully, our clipping operation will kindly tell the gradient to walk the other direction in proportional to amount we messed up. This is the only part where the first term inside <code class="language-plaintext highlighter-rouge">min()</code>  is lower than the second term, acting as a backup plan. And the most beautiful part is that PPO does all of this without having to compute additional KL constraints.</p>
 
 <p>All of these ideas can be summarized in the final loss function by summing this clipped PPO objective and two additional terms:</p>
 
@@ -383,7 +383,7 @@ window.onload = wrap_img;
         theme="github-light"
         crossorigin="anonymous"
         async>
-</script><a class="u-url" href="/blog/papers/2021/04/27/PPO.html" hidden></a>
+</script><a class="u-url" href="/blog/papers/2021/04/30/PPO.html" hidden></a>
 </article>
       </div>
     </main><footer class="site-footer h-card">
