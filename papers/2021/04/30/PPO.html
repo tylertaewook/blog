@@ -4,12 +4,12 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
-<title>Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017) | Tyler’s SandBox</title>
+<title>Understanding Proximal Policy Optimization (Schulman et al., 2017) | Tyler’s SandBox</title>
 <meta name="generator" content="Jekyll v4.1.1" />
-<meta property="og:title" content="Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)" />
+<meta property="og:title" content="Understanding Proximal Policy Optimization (Schulman et al., 2017)" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="How I approached the PPO arxiv paper as a complete beginner" />
-<meta property="og:description" content="How I approached the PPO arxiv paper as a complete beginner" />
+<meta name="description" content="How I approached the PPO paper bottom-up as a beginner" />
+<meta property="og:description" content="How I approached the PPO paper bottom-up as a beginner" />
 <link rel="canonical" href="https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html" />
 <meta property="og:url" content="https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html" />
 <meta property="og:site_name" content="Tyler’s SandBox" />
@@ -17,7 +17,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2021-04-30T00:00:00-05:00" />
 <script type="application/ld+json">
-{"url":"https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html","@type":"BlogPosting","headline":"Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)","dateModified":"2021-04-30T00:00:00-05:00","datePublished":"2021-04-30T00:00:00-05:00","image":"https://tylertaewook.github.io/blog/images/ppo.jpeg","mainEntityOfPage":{"@type":"WebPage","@id":"https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html"},"description":"How I approached the PPO arxiv paper as a complete beginner","@context":"https://schema.org"}</script>
+{"url":"https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html","@type":"BlogPosting","headline":"Understanding Proximal Policy Optimization (Schulman et al., 2017)","dateModified":"2021-04-30T00:00:00-05:00","datePublished":"2021-04-30T00:00:00-05:00","image":"https://tylertaewook.github.io/blog/images/ppo.jpeg","mainEntityOfPage":{"@type":"WebPage","@id":"https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html"},"description":"How I approached the PPO paper bottom-up as a beginner","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://tylertaewook.github.io/blog/feed.xml" title="Tyler's SandBox" /><!-- the google_analytics_id gets auto inserted from the config file -->
 
@@ -104,13 +104,13 @@ window.onload = wrap_img;
         <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">Understanding and Implementing Proximal Policy Optimization (Schulman et al., 2017)</h1><p class="page-description">How I approached the PPO arxiv paper as a complete beginner</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-04-30T00:00:00-05:00" itemprop="datePublished">
+    <h1 class="post-title p-name" itemprop="name headline">Understanding Proximal Policy Optimization (Schulman et al., 2017)</h1><p class="page-description">How I approached the PPO paper bottom-up as a beginner</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-04-30T00:00:00-05:00" itemprop="datePublished">
         Apr 30, 2021
       </time>
        • <span class="read-time" title="Estimated read time">
     
     
-      8 min read
+      6 min read
     
 </span></p>
 
@@ -139,7 +139,6 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h2"><a href="#multiple-epochs-for-policy-updating">Multiple Epochs for Policy Updating</a></li>
 </ul>
 </li>
-<li class="toc-entry toc-h1"><a href="#simplified-code-review">Simplified Code Review</a></li>
 <li class="toc-entry toc-h1"><a href="#resources">Resources</a></li>
 </ul><p>Research in policy gradient methods has been prevalent in recent years, with algorithms such as TRPO, GAE, and A2C/A3C showing state-of-the-art performance over traditional methods such as Q-learning. One of the core algorithms in this policy gradient/actor-critic field is <strong>Proximal Policy Optimization Algorithm</strong> implemented by OpenAI.</p>
 
@@ -147,8 +146,6 @@ window.onload = wrap_img;
 <ul>
   <li>Discuss the motives behind PPO by providing a beginner-friendly overview of Policy Gradient Methods and Trust Region Methods(TRPO)</li>
   <li>Understand the core contribution of PPO: <strong>Clipped Surrogate Objective</strong> and <strong>Multiple Epochs Policy Update</strong>
-</li>
-  <li>Review the simplified implementation by <a href="https://github.com/seungeunrho/minimalRL">seungeunrho/minimalRL</a>
 </li>
 </ul>
 
@@ -228,132 +225,6 @@ window.onload = wrap_img;
 
 <p>Every once in a while, green-thread will fire and run Stochastic Gradient Descent on our clipped loss function. Another special take? We can run <em>K</em> epochs of optimization on the same trajectory sample. This was also hard to do pre-PPO due to the risk of taking large steps on local samples, but PPO prevents this while allowing us to learn more from each trajectory.</p>
 
-<h1 id="simplified-code-review">
-<a class="anchor" href="#simplified-code-review" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Simplified Code Review</strong>
-</h1>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gym</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="n">nn</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="n">F</span>
-<span class="kn">import</span> <span class="nn">torch.optim</span> <span class="k">as</span> <span class="n">optim</span>
-<span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Categorical</span>
-
-<span class="c1">#Hyperparameters
-</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">0.0005</span>
-<span class="n">gamma</span>         <span class="o">=</span> <span class="mf">0.98</span>
-<span class="n">lmbda</span>         <span class="o">=</span> <span class="mf">0.95</span>
-<span class="n">eps_clip</span>      <span class="o">=</span> <span class="mf">0.1</span>
-<span class="n">K_epoch</span>       <span class="o">=</span> <span class="mi">3</span>
-<span class="n">T_horizon</span>     <span class="o">=</span> <span class="mi">20</span>
-
-<span class="k">class</span> <span class="nc">PPO</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">PPO</span><span class="p">,</span> <span class="bp">self</span><span class="p">).</span><span class="n">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="bp">self</span><span class="p">.</span><span class="n">fc1</span>   <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">256</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">fc_pi</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">fc_v</span>  <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="p">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">pi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">softmax_dim</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">fc_pi</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">prob</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">softmax_dim</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">prob</span>
-
-    <span class="k">def</span> <span class="nf">v</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">fc_v</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">v</span>
-
-    <span class="k">def</span> <span class="nf">put_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition</span><span class="p">):</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">transition</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">make_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">s_lst</span><span class="p">,</span> <span class="n">a_lst</span><span class="p">,</span> <span class="n">r_lst</span><span class="p">,</span> <span class="n">s_prime_lst</span><span class="p">,</span> <span class="n">prob_a_lst</span><span class="p">,</span> <span class="n">done_lst</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">transition</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">data</span><span class="p">:</span>
-            <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">,</span> <span class="n">prob_a</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">transition</span>
-
-            <span class="n">s_lst</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-            <span class="n">a_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">a</span><span class="p">])</span>
-            <span class="n">r_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">r</span><span class="p">])</span>
-            <span class="n">s_prime_lst</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_prime</span><span class="p">)</span>
-            <span class="n">prob_a_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">prob_a</span><span class="p">])</span>
-            <span class="n">done_mask</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">done</span> <span class="k">else</span> <span class="mi">1</span>
-            <span class="n">done_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">done_mask</span><span class="p">])</span>
-
-        <span class="n">s</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">s_prime</span><span class="p">,</span><span class="n">done_mask</span><span class="p">,</span> <span class="n">prob_a</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">s_lst</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="nb">float</span><span class="p">),</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">a_lst</span><span class="p">),</span> \
-                                          <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">r_lst</span><span class="p">),</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">s_prime_lst</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="nb">float</span><span class="p">),</span> \
-                                          <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">done_lst</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="nb">float</span><span class="p">),</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">prob_a_lst</span><span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">return</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">,</span> <span class="n">done_mask</span><span class="p">,</span> <span class="n">prob_a</span>
-
-    <span class="k">def</span> <span class="nf">train_net</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">,</span> <span class="n">done_mask</span><span class="p">,</span> <span class="n">prob_a</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">make_batch</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K_epoch</span><span class="p">):</span>
-            <span class="n">td_target</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">v</span><span class="p">(</span><span class="n">s_prime</span><span class="p">)</span> <span class="o">*</span> <span class="n">done_mask</span>
-            <span class="n">delta</span> <span class="o">=</span> <span class="n">td_target</span> <span class="o">-</span> <span class="bp">self</span><span class="p">.</span><span class="n">v</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-            <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span><span class="p">.</span><span class="n">detach</span><span class="p">().</span><span class="n">numpy</span><span class="p">()</span>
-
-            <span class="n">advantage_lst</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">advantage</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="k">for</span> <span class="n">delta_t</span> <span class="ow">in</span> <span class="n">delta</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-                <span class="n">advantage</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">lmbda</span> <span class="o">*</span> <span class="n">advantage</span> <span class="o">+</span> <span class="n">delta_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">advantage_lst</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">advantage</span><span class="p">])</span>
-            <span class="n">advantage_lst</span><span class="p">.</span><span class="n">reverse</span><span class="p">()</span>
-            <span class="n">advantage</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">advantage_lst</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="nb">float</span><span class="p">)</span>
-
-            <span class="n">pi</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">pi</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">softmax_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">pi_a</span> <span class="o">=</span> <span class="n">pi</span><span class="p">.</span><span class="n">gather</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>
-            <span class="n">ratio</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="n">pi_a</span><span class="p">)</span> <span class="o">-</span> <span class="n">torch</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="n">prob_a</span><span class="p">))</span>  <span class="c1"># a/b == exp(log(a)-log(b))
-</span>
-            <span class="n">surr1</span> <span class="o">=</span> <span class="n">ratio</span> <span class="o">*</span> <span class="n">advantage</span>
-            <span class="n">surr2</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">ratio</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">eps_clip</span><span class="p">,</span> <span class="mi">1</span><span class="o">+</span><span class="n">eps_clip</span><span class="p">)</span> <span class="o">*</span> <span class="n">advantage</span>
-            <span class="n">loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="p">.</span><span class="nb">min</span><span class="p">(</span><span class="n">surr1</span><span class="p">,</span> <span class="n">surr2</span><span class="p">)</span> <span class="o">+</span> <span class="n">F</span><span class="p">.</span><span class="n">smooth_l1_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">v</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">,</span> <span class="n">td_target</span><span class="p">.</span><span class="n">detach</span><span class="p">())</span>
-
-            <span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span><span class="p">.</span><span class="n">zero_grad</span><span class="p">()</span>
-            <span class="n">loss</span><span class="p">.</span><span class="n">mean</span><span class="p">().</span><span class="n">backward</span><span class="p">()</span>
-            <span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span><span class="p">.</span><span class="n">step</span><span class="p">()</span>
-
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="p">.</span><span class="n">make</span><span class="p">(</span><span class="s">'CartPole-v1'</span><span class="p">)</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">PPO</span><span class="p">()</span>
-<span class="n">score</span> <span class="o">=</span> <span class="mf">0.0</span>
-<span class="n">print_interval</span> <span class="o">=</span> <span class="mi">20</span>
-
-<span class="k">for</span> <span class="n">n_epi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">):</span>
-<span class="n">s</span> <span class="o">=</span> <span class="n">env</span><span class="p">.</span><span class="n">reset</span><span class="p">()</span>
-<span class="n">done</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
-    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T_horizon</span><span class="p">):</span>
-        <span class="n">prob</span> <span class="o">=</span> <span class="n">model</span><span class="p">.</span><span class="n">pi</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">s</span><span class="p">).</span><span class="nb">float</span><span class="p">())</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">Categorical</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="n">m</span><span class="p">.</span><span class="n">sample</span><span class="p">().</span><span class="n">item</span><span class="p">()</span>
-        <span class="n">s_prime</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="p">.</span><span class="n">step</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-
-        <span class="n">model</span><span class="p">.</span><span class="n">put_data</span><span class="p">((</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">r</span><span class="o">/</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">,</span> <span class="n">prob</span><span class="p">[</span><span class="n">a</span><span class="p">].</span><span class="n">item</span><span class="p">(),</span> <span class="n">done</span><span class="p">))</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">s_prime</span>
-
-        <span class="n">score</span> <span class="o">+=</span> <span class="n">r</span>
-        <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
-            <span class="k">break</span>
-
-    <span class="n">model</span><span class="p">.</span><span class="n">train_net</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="n">n_epi</span><span class="o">%</span><span class="n">print_interval</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">n_epi</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">"# of episode :{}, avg score : {:.1f}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">n_epi</span><span class="p">,</span> <span class="n">score</span><span class="o">/</span><span class="n">print_interval</span><span class="p">))</span>
-    <span class="n">score</span> <span class="o">=</span> <span class="mf">0.0</span>
-
-<span class="n">env</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
-<span class="n">main</span><span class="p">()</span>
-
-</code></pre></div></div>
-
 <h1 id="resources">
 <a class="anchor" href="#resources" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>Resources</strong>
 </h1>
@@ -367,6 +238,10 @@ window.onload = wrap_img;
 <a href="https://www.youtube.com/watch?v=L-QYXtJmXrc&amp;ab_channel=%ED%8C%A1%EC%9A%94%EB%9E%A9Pang-YoLab">Pang-YoLab’s PPO Review</a> (한글)</li>
   <li><a href="https://www.youtube.com/watch?v=l1CZQWBkdcY&amp;ab_channel=%ED%8C%A1%EC%9A%94%EB%9E%A9Pang-YoLab">Pang-YoLab’s PPO Implementation</a></li>
 </ul>
+
+<hr>
+
+<p>Originally published at https://tylertaewook.github.io/blog/papers/2021/04/30/PPO.html</p>
 
   </div><!-- from https://github.com/utterance/utterances -->
 <script src="https://utteranc.es/client.js"
