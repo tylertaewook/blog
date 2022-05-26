@@ -1,16 +1,12 @@
 ---
-name: Tails Azimuth
+name: Tyler Kim
 avatar: /static/images/avatar.png
-occupation: Professor of Atmospheric Science
-company: Stanford University
-email: address@yoursite.com
-twitter: https://twitter.com/Twitter
-linkedin: https://www.linkedin.com
-github: https://github.com
+occupation: First-year CS Undergrad
+company: Columbia University
+email: taewook.kim@columbia.edu
+twitter: https://twitter.com/tylertaewook
+linkedin: https://www.linkedin.com/tylertaewook
+github: https://github.com/tylertaewook
 ---
 
-Tails Azimuth is a professor of atmospheric sciences at the Stanford AI Lab. His research interests includes complexity modelling of tailwinds, headwinds and crosswinds.
-
-He leads the clean energy group which develops 3D air pollution-climate models, writes differential equation solvers, and manufactures titanium plated air ballons. In his free time he bakes raspberry pi.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed neque elit, tristique placerat feugiat ac, facilisis vitae arcu. Proin eget egestas augue. Praesent ut sem nec arcu pellentesque aliquet. Duis dapibus diam vel metus tempus vulputate.
+My name is Tyler, a first-year undergrad at Columbia SEAS pursuing towards a B.S. in Computer Science. My general interest revolves around intertwining Machine Learning and Web Development in which I spark my passion working on ML Web apps such as scraft.ai. I'm curently exploring fields like text-mining, arduino-robotics, computer-vision, and reinforcement-learning until I settle onto a single one that I would like to dive deeper.
