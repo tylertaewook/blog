@@ -1,6 +1,5 @@
 import siteMetadata from '@/data/siteMetadata'
 import headerNavLinks from '@/data/headerNavLinks'
-import Logo from '@/data/logo.svg'
 import Link from './Link'
 import SectionContainer from './SectionContainer'
 import Footer from './Footer'
@@ -26,7 +25,7 @@ const LayoutWrapper = ({ children }) => {
                   >
                     <g
                       transform="translate(0.000000,894.000000) scale(0.100000,-0.100000)"
-                      fill={'#00ADB5'}
+                      fill="#6b7280"
                       stroke="none"
                     >
                       <path
