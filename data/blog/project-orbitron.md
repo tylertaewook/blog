@@ -1,7 +1,7 @@
 ---
 title: 'Orbitron: Reinventing the (spherical) wheels and its control algorithm'
 date: '2021-04-02'
-tags: ['arduino', 'algorithm', 'patented']
+tags: ['next-js', 'tailwind', 'guide']
 summary: 'My six-month journey of building a 4 Wheel Independent Steering/Driving Vehicle'
 ---
 
