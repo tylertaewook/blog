@@ -1,3 +1,23 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid meet" viewBox="344.5639097744361 330.27819548872174 111.73684210526318 91.21804511278197" width="53.87" height="43.61"><defs><path d="M453.3 331.28L453.3 359.85L388.64 418.5L388.64 388.42L453.3 331.28Z" id="aFZf6T5ED"></path><linearGradient id="gradientb2ThqnP5Op" gradientUnits="userSpaceOnUse" x1="420.97" y1="331.28" x2="420.97" y2="418.5"><stop style="stop-color: #06b6d4;stop-opacity: 1" offset="0%"></stop><stop style="stop-color: #67e8f9;stop-opacity: 1" offset="100%"></stop></linearGradient><path d="M410.23 331.28L410.23 359.85L345.56 418.5L345.56 388.42L410.23 331.28Z" id="a9fehgwfM"></path><linearGradient id="gradientk1wNV9Ostb" gradientUnits="userSpaceOnUse" x1="377.89" y1="331.28" x2="377.89" y2="418.5"><stop style="stop-color: #06b6d4;stop-opacity: 1" offset="0%"></stop><stop style="stop-color: #67e8f9;stop-opacity: 1" offset="100%"></stop></linearGradient></defs><g><g><use xlink:href="#aFZf6T5ED" opacity="1" fill="url(#gradientb2ThqnP5Op)"></use></g><g><use xlink:href="#a9fehgwfM" opacity="1" fill="url(#gradientk1wNV9Ostb)"></use></g></g></svg>
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+ "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+ width="50.000000pt" height="50.000000pt" viewBox="0 0 1001.000000 894.000000"
+ preserveAspectRatio="xMidYMid meet">
+
+<g transform="translate(0.000000,894.000000) scale(0.100000,-0.100000)"
+fill="#ffffff" stroke="none">
+<path d="M464 8440 c-25 -13 -49 -35 -62 -59 -21 -37 -22 -49 -22 -341 0 -292
+1 -304 22 -341 14 -25 37 -46 63 -59 41 -20 62 -20 1238 -20 l1197 0 0 -3581
+c0 -3283 1 -3584 16 -3615 9 -19 31 -44 48 -57 30 -22 37 -22 336 -22 299 0
+306 0 336 22 17 13 39 38 48 57 15 31 16 332 16 3615 l0 3581 520 0 520 0 0
+-3577 c0 -3529 0 -3578 20 -3610 41 -68 42 -68 370 -68 328 0 329 0 370 68 19
+31 20 61 20 1289 0 1209 1 1258 19 1290 10 18 168 325 351 682 259 504 335
+645 342 630 18 -44 1148 -3873 1148 -3891 0 -26 34 -61 67 -69 33 -9 29 -9
+385 -6 319 2 328 4 328 54 0 12 8 30 17 40 19 21 14 40 -92 388 -118 385
+-1335 4501 -1335 4513 0 8 260 520 578 1138 l579 1124 854 5 c818 5 855 6 886
+24 17 11 41 36 52 56 20 36 21 52 21 340 0 292 -1 304 -22 341 -14 25 -37 46
+-63 59 -41 20 -62 20 -4586 20 -4537 0 -4544 0 -4585 -20z m6551 -837 c-6 -19
+-1306 -2549 -1427 -2778 l-68 -130 0 1463 0 1462 751 0 c711 0 751 -1 744 -17z"/>
+</g>
+</svg>
