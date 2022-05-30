@@ -3,6 +3,8 @@ title: 'Orbitron: Reinventing the (spherical) wheels and its control algorithm'
 date: '2021-04-02'
 tags: ['robotics', 'algorithm']
 summary: 'My six-month journey of building a 4 Wheel Independent Steering/Driving Vehicle'
+mediumlink: 'https://towardsdatascience.com/orbitron-reinventing-the-wheels-and-its-control-algorithm-8f60ffd44238'
+publication: 'Towards Data Science'
 ---
 
 Being a heavy Sci-fi fan myself, I always wondered: how would those spherical wheels from _Tron_ and _I-Robot_ work in real life?

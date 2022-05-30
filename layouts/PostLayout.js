@@ -17,7 +17,7 @@ const discussUrl = (slug) =>
 const postDateTemplate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
 
 export default function PostLayout({ frontMatter, authorDetails, next, prev, children }) {
-  const { slug, fileName, date, title, tags } = frontMatter
+  const { slug, fileName, date, title, tags, mediumlink, publication } = frontMatter
 
   return (
     <SectionContainer>
@@ -107,6 +107,16 @@ export default function PostLayout({ frontMatter, authorDetails, next, prev, chi
                       {tags.map((tag) => (
                         <Tag key={tag} text={tag} />
                       ))}
+                    </div>
+                  </div>
+                )}
+                {mediumlink && (
+                  <div className="py-4 xl:py-8">
+                    <h2 className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      Also Published In:
+                    </h2>
+                    <div className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400">
+                      <Link href={mediumlink}>{publication}</Link>
                     </div>
                   </div>
                 )}
