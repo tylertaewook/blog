@@ -1,6 +1,6 @@
 ---
 title: 'What I learned from building a Django appointment scheduler for my school'
-date: '2021-05-30'
+date: '2022-05-30'
 tags: ['web-dev', 'django']
 summary: 'The project that taught me how to learn, why I learn, and what to learn in my future CS career.'
 mediumlink: 'https://medium.com/@tylertaewook/what-i-learned-from-building-a-django-appointment-scheduler-for-my-school-2a9af57f6f2a'
